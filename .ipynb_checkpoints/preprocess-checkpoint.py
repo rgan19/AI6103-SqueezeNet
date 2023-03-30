@@ -23,9 +23,9 @@ def get_train_valid_loader(dir, batch_size, augment, seed_value, save):
     if augment == True:
 
         transform_train = transforms.Compose([
+            transforms.Normalize(mean_val, std_val),
             transforms.RandomCrop(32,4),
             transforms.RandomHorizontalFlip(p=0.5), 
-            transforms.Normalize(mean_val, std_val),
             # transforms.ToTensor(),
         ])
 
