@@ -1,3 +1,7 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class Block(nn.Module):
     eps = 1e-5
     momentum = 0.05

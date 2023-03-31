@@ -9,9 +9,9 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
 
     model.to(device)
     
-    total_training_loss = []
+    total_train_loss = []
     total_val_loss = []
-    total_training_acc = []
+    total_train_acc = []
     total_val_acc = []
     
     for epoch in range(epochs):

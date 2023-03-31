@@ -1,3 +1,8 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
 class Fire(nn.Module):
   def __init__(self, in_planes, squeeze1x1, expand1x1, expand3x3):
     super(Fire, self).__init__()
