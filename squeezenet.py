@@ -5,7 +5,7 @@ import math
 
 class Fire(nn.Module):
   def __init__(self, in_planes, squeeze1x1, expand1x1, expand3x3):
-    super(Fire, self).__init__()
+    super().__init__()
     self.squeeze = nn.Conv2d(in_planes, squeeze1x1, kernel_size = 1)
     self.expand1 = nn.Conv2d(squeeze1x1, expand1x1, kernel_size = 1)
     self.expand3 = nn.Conv2d(squeeze1x1, expand3x3, kernel_size = 3, padding = 1)
@@ -16,10 +16,8 @@ class Fire(nn.Module):
   
   def forward(self, x):
     out = F.relu(self.squeeze(x))
-    out = torch.cat([F.relu(self.expand1(x)),F.relu(self.expand3(x))],1)
+    out = torch.cat([F.relu(self.expand1(out)),F.relu(self.expand3(out))],1)
     return out
-                 
-
   
 class SqueezeNet(nn.Module):
   def __init__(self):
