@@ -29,6 +29,7 @@ class Fire(nn.Module):
     out2 = self.bn3(out2)
     out = torch.cat([out1, out2], 1)
     out = self.relu2(out)
+
     return out
   
 class SqueezeNet(nn.Module):
@@ -49,7 +50,8 @@ class SqueezeNet(nn.Module):
     self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2) #4x4
     self.fire9 = Fire(512, 64, 256, 256)
     self.conv2 = nn.Conv2d(512, 100, kernel_size=1, stride=1)
-    self.classifier = nn.Sequential(nn.Dropout(p=0.5), self.conv2, nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1)))
+    #self.avg_pool = nn.AvgPool2d(kernel_size=4, stride=4) #1x1
+    self.classifier = nn.Sequential(self.conv2, nn.ReLU(inplace=True), nn.AvgPool2d(kernel_size=4, stride=4))
     #for m in self.modules():
     #  if isinstance(m, nn.Conv2d):
     #    n = m.kernel_size[0] * m.kernel_size[1] * m.in_channels
@@ -74,6 +76,8 @@ class SqueezeNet(nn.Module):
     out = self.maxpool3(out)
     out = self.fire9(out)
     out = self.classifier(out)
-    out = torch.flatten(out, 1) # flatten to [128, 100]
+    #out = self.avg_pool(out)
+    out = torch.flatten(out, 1)
     #out = self.softmax(out)
+    # flatten to [128, 100]
     return out
