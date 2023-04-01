@@ -64,4 +64,6 @@ class SqueezeNet(nn.Module):
     out = self.conv2(out)
     out = self.avg_pool(out)
     out = self.softmax(out)
+    out = torch.flatten(out, 1) # flatten to [128, 100]
     return out
+  
