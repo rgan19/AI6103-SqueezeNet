@@ -1,8 +1,18 @@
+import argparse
+import json
+import os
+import sys
+import time
+import warnings
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
+from squeezenet import SqueezeNet
+from preprocess import get_test_loader, get_train_valid_loader
+from utils import plot_loss_acc
 
 def train(train_loader, val_loader, model, criterion, optimizer, epochs, scheduler, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,6 +64,8 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             val_loss += batch_size * loss.item()
             val_samples += batch_size
             
+            # print
+        print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(train_loss/train_samples):.4f}.. Train acc: {(train_acc/train_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}")
         total_train_loss.append(train_loss/train_samples)
         total_train_acc.append(train_acc/train_samples)
         total_val_loss.append(val_loss/val_samples)
@@ -94,4 +106,63 @@ def test(test_loader, model, criterion):
     }
     
     
+def parse_args(args):
+    parser = argparse.ArgumentParser(description='SqueezeNet training parameter setting')
+    parser.add_argument('--dataset_dir',type=str, help='')
+    parser.add_argument('--fig_name',type=str, help='')
+    parser.add_argument('--save_images', action='store_true', default=True)
+
+    parser.add_argument('--epochs', default=10, type=int, metavar='N',
+            help='number of total epochs to run')
+    parser.add_argument('--test', action='store_true', default=False)
     
+    parser.add_argument('-b', '--batch_size', default=128, type=int,
+            help='mini-batch size (default: 128)')
+    
+    parser.add_argument('--seed', type=int, default=0, help='set random seed value')
+    parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
+    parser.add_argument('--lr', '--learning_rate', default=0.0003, type=float,
+            metavar='LR', help='initial learning rate', dest='lr')
+    parser.add_argument('--lr_scheduler', default=True, help='select learning rate schduler')
+    
+    # TODO: add more arguments for different improvements 
+
+    return parser.parse_args(args)
+
+
+def main(args):
+    print ('-- arguments -- \n', args)
+    
+    # Setup train data
+    train_loader, val_loader, norm_value = get_train_valid_loader(args.dataset_dir, args.batch_size, True, args.seed, args.save_images)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    print ('-- Model Setup')
+    model = SqueezeNet()
+    model.to(device)
+
+    print ('-- Criterion')
+    criterion = torch.nn.CrossEntropyLoss().to(device)
+
+    print ('-- Optimizer')
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.wd)
+    if args.lr_scheduler:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
+    else:
+        scheduler = torch.optim.lr_scheduler.ConstantLR(optimizer, factor=1.0, total_iters=args.epochs)
+
+    print ('-- Training')
+    train_result = train(train_loader, val_loader, model, criterion, optimizer, args.epochs, scheduler, args)
+    print('Train result', train_result) # TODO: delete
+
+    # Run on test set
+    if args.test:
+        test_loader = get_test_loader(args.dataset_dir, args.batch_size, norm_value)
+        test_result = test(test_loader, model, criterion)
+        print('Test result', test_result)
+
+
+if __name__ == '__main__':
+  print('sys.arg', sys.argv[1:])
+  args = parse_args(sys.argv[1:])
+  main(args)

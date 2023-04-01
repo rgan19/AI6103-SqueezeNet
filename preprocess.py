@@ -10,15 +10,16 @@ def get_train_valid_loader(dir, batch_size, augment, seed_value, save):
     ## using CIFAR 100
     trainset = torchvision.datasets.CIFAR100(
         root=dir, train=True, download=save, transform=None) # no transformation, validation set is not transformed
-    print ('-- Loading Train & Validation Data --')
-    new_train_len = len(trainset) * 0.8
-    new_val_len = len(trainset) * 0.2
+    print ('-- Loading Train & Validation Data')
+    new_train_len = int(len(trainset) * 0.8)
+    new_val_len = int(len(trainset) * 0.2)
     train_set, val_set = torch.utils.data.random_split(trainset, [new_train_len, new_val_len], generator=torch.Generator().manual_seed(seed_value)) # set seed here
 
     print ('Training Data Loaded:', len(train_set))
-    print ('Validation Data Loaded', len(val_set))
+    print ('Validation Data Loaded:', len(val_set))
 
     mean_val, std_val = calculate_mean_std(train_set)
+    norm_value = [mean_val, std_val]
 
     if augment == True:
 
@@ -46,13 +47,16 @@ def get_train_valid_loader(dir, batch_size, augment, seed_value, save):
     valid_loader = torch.utils.data.DataLoader(
         val_set, batch_size=batch_size, shuffle=True, num_workers=2)
     
-    return train_loader, valid_loader
+    return train_loader, valid_loader, norm_value
 
 
 def get_test_loader(dir, batch_size, norm_value): # norm value takes in 
 
     mean_val = norm_value[0]
     std_val = norm_value[1]
+    print('mean val', mean_val, std_val)
+    # mean_val = (0.5068, 0.4861, 0.4403)
+    # std_val = (0.2108, 0.2080, 0.2152)
    
     transform_test = transforms.Compose([
         transforms.ToTensor(),
