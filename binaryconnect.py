@@ -1,5 +1,3 @@
-# Adapted from https://github.com/eghouti/BinaryConnect/blob/master/binaryconnect.py
-
 class BC():
     def __init__(self, model):
         counter = 0
@@ -27,14 +25,7 @@ class BC():
         self.save_params()
         for index in range(self.num_of_params):
             self.target_modules[index].data.copy_(self.target_modules[index].data.sign())
-            
-            
-    def BWN(self): # Binary Weight Network
-        self.save_params()
-        for index in range(self.num_of_params):
-            E=self.target_modules[index].data.abs().mean()
-            self.target_modules[index].data.copy_(self.target_modules[index].data.sign() *E)
-            
+
             
     def save_params(self):
         for index in range(self.num_of_params):
