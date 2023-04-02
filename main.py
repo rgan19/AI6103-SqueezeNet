@@ -10,7 +10,7 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
-from squeezenet import SqueezeNet
+from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
 from utils import plot_loss_acc
 
