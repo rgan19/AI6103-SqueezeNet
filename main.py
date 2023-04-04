@@ -12,7 +12,7 @@ import numpy as np
 
 from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
-from utils import plot_loss_acc
+from utils import plot_loss_acc, plotter, epoch_time
 
 def train(train_loader, val_loader, model, criterion, optimizer, epochs, scheduler, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,6 +24,7 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
     total_train_acc = []
     total_val_acc = []
     
+    start_time = time.time()
     for epoch in range(epochs):
         train_acc, train_loss, val_acc, val_loss = 0, 0, 0, 0
         train_samples, val_samples = 0, 0 
@@ -60,18 +61,19 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             _, top_class = val_logits.topk(1, dim=1)
             equals = top_class == val_labels.view(*top_class.shape)
             
-            val_acc += torch.sum(equals)
+            val_acc += torch.sum(equals).item()
             val_loss += batch_size * loss.item()
             val_samples += batch_size
             
-            # print
+        # print
         print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(train_loss/train_samples):.4f}.. Train acc: {(train_acc/train_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}")
         total_train_loss.append(train_loss/train_samples)
         total_train_acc.append(train_acc/train_samples)
         total_val_loss.append(val_loss/val_samples)
         total_val_acc.append(val_acc/val_samples)
         
-    
+    time_taken = epoch_time(start_time, time.time())
+    print('Total Training Time', time_taken)
     return {
         "train_acc": total_train_acc,
         "train_loss": total_train_loss,
@@ -123,8 +125,8 @@ def parse_args(args):
     parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
     parser.add_argument('--lr', '--learning_rate', default=0.0003, type=float,
             metavar='LR', help='initial learning rate', dest='lr')
-    parser.add_argument('--lr_scheduler', default=True, help='select learning rate schduler')
-    
+    parser.add_argument('--lr_scheduler', action='store_true', default=True, help='select learning rate schduler')
+    # parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
     # TODO: add more arguments for different improvements 
 
     return parser.parse_args(args)
@@ -155,11 +157,18 @@ def main(args):
     train_result = train(train_loader, val_loader, model, criterion, optimizer, args.epochs, scheduler, args)
     print('Train result', train_result) # TODO: delete
 
+    # save model after training
+    torch.save(model.state_dict(), './model.pt')
+
     # Run on test set
     if args.test:
         test_loader = get_test_loader(args.dataset_dir, args.batch_size, norm_value)
         test_result = test(test_loader, model, criterion)
         print('Test result', test_result)
+
+    # plot
+    # if args.plot:
+    #     plotter(train_result, args.fig_name)
 
 
 if __name__ == '__main__':
