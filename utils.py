@@ -13,8 +13,8 @@ def plotter(data, fig_name):
     val_acc = data.get('val_acc')
 
     plot_loss_acc(train_loss, val_loss, train_acc, val_acc, fig_name)
-    plot_acc(train_acc, val_acc, fig_name)
-    plot_loss(train_loss, val_loss, fig_name)
+    # plot_acc(train_acc, val_acc, fig_name)
+    # plot_loss(train_loss, val_loss, fig_name)
 
 def plot_loss_acc(train_loss, val_loss, train_acc, val_acc, fig_name):
     x = np.arange(len(train_loss))
@@ -44,7 +44,7 @@ def plot_loss_acc(train_loss, val_loss, train_acc, val_acc, fig_name):
 
     plt.savefig(os.path.join('./diagram', fig_name))
 
-    np.savez(os.path.join('./diagram', fig_name.replace('.png ', '.npz')), train_loss=train_loss, val_loss=val_loss, train_acc=train_acc, val_acc=val_acc)
+    # np.savez(os.path.join('./diagram', fig_name.replace('.png ', '.npz')), train_loss=train_loss, val_loss=val_loss, train_acc=train_acc, val_acc=val_acc)
 
 
 # plot ONLY accuracy against epoch
@@ -102,6 +102,3 @@ def epoch_time(start_time, end_time):
     elapsed_mins = int(elapsed_time / 60)
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
-
-def write_output_to_file(file_name):
-    return

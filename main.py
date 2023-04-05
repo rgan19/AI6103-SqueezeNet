@@ -121,12 +121,17 @@ def parse_args(args):
     parser.add_argument('-b', '--batch_size', default=128, type=int,
             help='mini-batch size (default: 128)')
     
+    parser.add_argument('--mish', default=False, action='store_true', help='use mish activation function')
+    parser.add_argument('--bc', '--binary_connect', default=False, action='store_true', help='apply binary connect')
+    parser.add_argument('--skip', default=False, action='store_true', help='apply skip connection')
+    
     parser.add_argument('--seed', type=int, default=0, help='set random seed value')
     parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
     parser.add_argument('--lr', '--learning_rate', default=0.0003, type=float,
             metavar='LR', help='initial learning rate', dest='lr')
     parser.add_argument('--lr_scheduler', action='store_true', default=True, help='select learning rate schduler')
-    # parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
+    parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
+    
     # TODO: add more arguments for different improvements 
 
     return parser.parse_args(args)
@@ -157,8 +162,9 @@ def main(args):
     train_result = train(train_loader, val_loader, model, criterion, optimizer, args.epochs, scheduler, args)
     print('Train result', train_result) # TODO: delete
 
-    # save model after training
-    torch.save(model.state_dict(), './model.pt')
+    # save model results after training
+    torch.save(model.state_dict(), './train-model.pt')
+    np.savez(os.path.join('./diagram', args.fig_name.replace('.png ', '.npz')), train_loss=train_result['train_loss'], val_loss=train_result['val_loss'], train_acc=train_result['train_acc'], val_acc=train_result['val_acc'])
 
     # Run on test set
     if args.test:
@@ -167,8 +173,8 @@ def main(args):
         print('Test result', test_result)
 
     # plot
-    # if args.plot:
-    #     plotter(train_result, args.fig_name)
+    if args.plot:
+        plotter(train_result, args.fig_name)
 
 
 if __name__ == '__main__':
