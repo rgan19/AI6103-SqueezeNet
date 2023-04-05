@@ -10,6 +10,8 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
+import binaryconnect
+from models.squeezenet import SqueezeNet
 from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
 from utils import plot_loss_acc, plotter, epoch_time
@@ -18,7 +20,7 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model.to(device)
-    
+      
     total_train_loss = []
     total_val_loss = []
     total_train_acc = []
@@ -33,14 +35,21 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             batch_size = images.shape[0]
 
             images, labels = images.to(device), labels.to(device)
+            
+            binaryconnect.binarization()    # BC implementation  
+            
             logits = model(images)
 
             optimizer.zero_grad()
-
-            loss = criterion(logits, labels) 
-            
+            loss = criterion(logits, labels)
             loss.backward()
+            
+            binaryconnect.restore()     # BC implementation
+                                  
             optimizer.step()
+            
+            binaryconnect.clip()     # BC implementation
+            
             scheduler.step()
             
             _, top_class = logits.topk(1, dim=1)
@@ -147,6 +156,9 @@ def main(args):
     print ('-- Model Setup')
     model = SqueezeNet()
     model.to(device)
+    
+    # BC implementation
+    binaryconnect = binaryconnect.BC(model)
 
     print ('-- Criterion')
     criterion = torch.nn.CrossEntropyLoss().to(device)
