@@ -132,7 +132,6 @@ def parse_args(args):
     parser.add_argument('-b', '--batch_size', default=128, type=int,
             help='mini-batch size (default: 128)')
     
-    parser.add_argument('--mish', default=False, action='store_true', help='use mish activation function')
     parser.add_argument('--bc', '--binary_connect', default=False, action='store_true', help='apply binary connect')
     parser.add_argument('--skip', default=False, action='store_true', help='apply skip connection')
     
@@ -176,7 +175,6 @@ def main(args):
 
     print ('-- Training')
     train_result = train(train_loader, val_loader, model, criterion, optimizer, args.epochs, scheduler, args)
-    print('Train result', train_result) # TODO: delete
 
     # save model results after training
     torch.save(model.state_dict(), './train-model.pt')
