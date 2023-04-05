@@ -35,20 +35,22 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             batch_size = images.shape[0]
 
             images, labels = images.to(device), labels.to(device)
-            
-            binaryconnect.binarization()    # BC implementation  
+
+            if args.bc:
+                binaryconnect.binarization()    # BC implementation  
             
             logits = model(images)
-
             optimizer.zero_grad()
             loss = criterion(logits, labels)
             loss.backward()
             
-            binaryconnect.restore()     # BC implementation
+            if args.bc:
+                binaryconnect.restore()     # BC implementation
                                   
             optimizer.step()
             
-            binaryconnect.clip()     # BC implementation
+            if args.bc:
+                binaryconnect.clip()     # BC implementation
             
             scheduler.step()
             
@@ -158,7 +160,9 @@ def main(args):
     model.to(device)
     
     # BC implementation
-    binaryconnect = binaryconnect.BC(model)
+    if args.bc:
+        print('-binary connect')
+        binaryconnect = binaryconnect.BC(model)
 
     print ('-- Criterion')
     criterion = torch.nn.CrossEntropyLoss().to(device)
