@@ -10,7 +10,6 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
-import binaryconnect
 from models.squeezenet import SqueezeNet
 from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
@@ -32,23 +31,12 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
         model.train()
         for images, labels in train_loader:
             batch_size = images.shape[0]
-
-            images, labels = images.to(device), labels.to(device)
-            
-            binaryconnect.binarization()    # BC implementation  
-            
+            images, labels = images.to(device), labels.to(device)      
             logits = model(images)
-
             optimizer.zero_grad()
             loss = criterion(logits, labels)
-            loss.backward()
-            
-            binaryconnect.restore()     # BC implementation
-                                  
+            loss.backward()             
             optimizer.step()
-            
-            binaryconnect.clip()     # BC implementation
-            
             scheduler.step()
             
             _, top_class = logits.topk(1, dim=1)
