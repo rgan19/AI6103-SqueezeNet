@@ -122,7 +122,7 @@ def parse_args(args):
     
     parser.add_argument('--seed', type=int, default=0, help='set random seed value')
     parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
-    parser.add_argument('--lr', '--learning_rate', default=0.0003, type=float,
+    parser.add_argument('--lr', '--learning_rate', default=0.12, type=float,
             metavar='LR', help='initial learning rate', dest='lr')
     parser.add_argument('--lr_scheduler', default=True, help='select learning rate schduler')
     
