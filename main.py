@@ -35,7 +35,11 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             logits = model(images)
             optimizer.zero_grad()
             loss = criterion(logits, labels)
-            loss.backward()             
+            loss.backward()
+            
+            # BC implementation - Clip weights prior to parameter update
+            torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
+            
             optimizer.step()
             scheduler.step()
             
