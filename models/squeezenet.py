@@ -15,7 +15,7 @@ class Fire(nn.Module):
     self.bn3 = nn.BatchNorm2d(expand3x3)
     self.relu2 = nn.ReLU(inplace=True)
     
-    # BC implementation
+    # Binarizing weights for fire module
     for m in self.modules():
       if isinstance(m, nn.Conv2d):
         torch.nn.init.normal_(m.weight, mean=0, std=0.01)
