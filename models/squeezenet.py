@@ -14,10 +14,12 @@ class Fire(nn.Module):
     self.expand3 = nn.Conv2d(squeeze1x1, expand3x3, kernel_size = 3, padding = 1)
     self.bn3 = nn.BatchNorm2d(expand3x3)
     self.relu2 = nn.ReLU(inplace=True)
-    #for m in self.modules():
-    #  if isinstance(m, nn.Conv2d):
-    #    n = m.kernel_size[0] * m.kernel_size[1] * m.in_channels
-    #    m.weight.data.normal_(0, math.sqrt(2./n))
+    
+    # BC implementation
+    for m in self.modules():
+      if isinstance(m, nn.Conv2d):
+        torch.nn.init.normal_(m.weight, mean=0, std=0.01)
+        m.weight.data = torch.sign(m.weight.data)
   
   def forward(self, x):
     out = self.squeeze(x)
