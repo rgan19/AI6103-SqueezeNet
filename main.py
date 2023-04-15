@@ -11,7 +11,6 @@ import torchvision.transforms as transforms
 import numpy as np
 
 from models.squeezenet import SqueezeNet
-from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
 from utils import plot_loss_acc, plotter, epoch_time
 
@@ -37,13 +36,12 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             optimizer.zero_grad()
             loss = criterion(logits, labels)
             loss.backward()
+            optimizer.step()
             
             # BC implementation - Clip weights prior to parameter update
             if args.bc:
                 torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
             
-            optimizer.step()
-            scheduler.step()
             
             _, top_class = logits.topk(1, dim=1)
             equals = top_class == labels.view(*top_class.shape)
@@ -69,6 +67,10 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             
         # print
         print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(train_loss/train_samples):.4f}.. Train acc: {(train_acc/train_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}")
+        
+        # lr scheduler
+        scheduler.step()
+        
         total_train_loss.append(train_loss/train_samples)
         total_train_acc.append(train_acc/train_samples)
         total_val_loss.append(val_loss/val_samples)
@@ -151,7 +153,7 @@ def main(args):
     
     # BC implementation
     if args.bc:
-        print('-binary connect')
+        print('-- Binary Connect')
         binaryconnect = binaryconnect.BC(model)
 
     print ('-- Criterion')
