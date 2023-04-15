@@ -39,8 +39,7 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             optimizer.step()
             
             # BC implementation - Clip weights prior to parameter update
-            if args.bc:
-                torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
+            torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
             
             
             _, top_class = logits.topk(1, dim=1)
@@ -76,8 +75,8 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
         total_val_loss.append(val_loss/val_samples)
         total_val_acc.append(val_acc/val_samples)
         
-    time_taken = epoch_time(start_time, time.time())
-    print('Total Training Time', time_taken)
+    time_taken_min, time_taken_sec = epoch_time(start_time, time.time())
+    print(f'Total Training Time {time_taken_min} min {time_taken_sec} sec')
     return {
         "train_acc": total_train_acc,
         "train_loss": total_train_loss,
@@ -152,9 +151,7 @@ def main(args):
     model.to(device)
     
     # BC implementation
-    if args.bc:
-        print('-- Binary Connect')
-        binaryconnect = binaryconnect.BC(model)
+    # binaryconnect = binaryconnect.BC(model)
 
     print ('-- Criterion')
     criterion = torch.nn.CrossEntropyLoss().to(device)
