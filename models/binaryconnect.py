@@ -1,8 +1,14 @@
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+import numpy
+
 class BC():
     def __init__(self, model):
         counter = 0
         for m in model.modules():
-            if isinstance(m, nn.Conv2d)
+            if isinstance(m, nn.Conv2d):
                 counter = counter + 1
 
         start_range = 0

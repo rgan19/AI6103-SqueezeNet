@@ -11,9 +11,8 @@ import torchvision.transforms as transforms
 import numpy as np
 
 from models.squeezenet import SqueezeNet
-from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
-from utils import plot_loss_acc
+from utils import plot_loss_acc, plotter, epoch_time
 
 def train(train_loader, val_loader, model, criterion, optimizer, epochs, scheduler, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,6 +24,7 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
     total_train_acc = []
     total_val_acc = []
     
+    start_time = time.time()
     for epoch in range(epochs):
         train_acc, train_loss, val_acc, val_loss = 0, 0, 0, 0
         train_samples, val_samples = 0, 0 
@@ -36,12 +36,11 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             optimizer.zero_grad()
             loss = criterion(logits, labels)
             loss.backward()
+            optimizer.step()
             
             # BC implementation - Clip weights prior to parameter update
             torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
             
-            optimizer.step()
-            scheduler.step()
             
             _, top_class = logits.topk(1, dim=1)
             equals = top_class == labels.view(*top_class.shape)
@@ -61,18 +60,23 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
             _, top_class = val_logits.topk(1, dim=1)
             equals = top_class == val_labels.view(*top_class.shape)
             
-            val_acc += torch.sum(equals)
+            val_acc += torch.sum(equals).item()
             val_loss += batch_size * loss.item()
             val_samples += batch_size
             
-            # print
+        # print
         print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(train_loss/train_samples):.4f}.. Train acc: {(train_acc/train_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}")
+        
+        # lr scheduler
+        scheduler.step()
+        
         total_train_loss.append(train_loss/train_samples)
         total_train_acc.append(train_acc/train_samples)
         total_val_loss.append(val_loss/val_samples)
         total_val_acc.append(val_acc/val_samples)
         
-    
+    time_taken_min, time_taken_sec = epoch_time(start_time, time.time())
+    print(f'Total Training Time {time_taken_min} min {time_taken_sec} sec')
     return {
         "train_acc": total_train_acc,
         "train_loss": total_train_loss,
@@ -120,11 +124,15 @@ def parse_args(args):
     parser.add_argument('-b', '--batch_size', default=128, type=int,
             help='mini-batch size (default: 128)')
     
+    parser.add_argument('--bc', '--binary_connect', default=False, action='store_true', help='apply binary connect')
+    parser.add_argument('--skip', default=False, action='store_true', help='apply skip connection')
+    
     parser.add_argument('--seed', type=int, default=0, help='set random seed value')
     parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
     parser.add_argument('--lr', '--learning_rate', default=0.12, type=float,
             metavar='LR', help='initial learning rate', dest='lr')
-    parser.add_argument('--lr_scheduler', default=True, help='select learning rate schduler')
+    parser.add_argument('--lr_scheduler', action='store_true', default=True, help='select learning rate schduler')
+    parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
     
     # TODO: add more arguments for different improvements 
 
@@ -143,7 +151,7 @@ def main(args):
     model.to(device)
     
     # BC implementation
-    binaryconnect = binaryconnect.BC(model)
+    # binaryconnect = binaryconnect.BC(model)
 
     print ('-- Criterion')
     criterion = torch.nn.CrossEntropyLoss().to(device)
@@ -157,13 +165,20 @@ def main(args):
 
     print ('-- Training')
     train_result = train(train_loader, val_loader, model, criterion, optimizer, args.epochs, scheduler, args)
-    print('Train result', train_result) # TODO: delete
+
+    # save model results after training
+    torch.save(model.state_dict(), './train-model.pt')
+    np.savez(os.path.join('./diagram', args.fig_name.replace('.png ', '.npz')), train_loss=train_result['train_loss'], val_loss=train_result['val_loss'], train_acc=train_result['train_acc'], val_acc=train_result['val_acc'])
 
     # Run on test set
     if args.test:
         test_loader = get_test_loader(args.dataset_dir, args.batch_size, norm_value)
         test_result = test(test_loader, model, criterion)
         print('Test result', test_result)
+
+    # plot
+    if args.plot:
+        plotter(train_result, args.fig_name)
 
 
 if __name__ == '__main__':

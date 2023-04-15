@@ -2,20 +2,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+# from models.mish import Mish
 
 class Fire(nn.Module):
   def __init__(self, in_planes, squeeze1x1, expand1x1, expand3x3):
     super().__init__()
     self.squeeze = nn.Conv2d(in_planes, squeeze1x1, kernel_size = 1)
     self.bn1 = nn.BatchNorm2d(squeeze1x1)
-    self.relu1 = nn.ReLU(inplace=True)                
+    # self.act1 = nn.ReLU(inplace=True)
+    self.act1 = nn.Mish(inplace=True)
     self.expand1 = nn.Conv2d(squeeze1x1, expand1x1, kernel_size = 1)
     self.bn2 = nn.BatchNorm2d(expand1x1)
     self.expand3 = nn.Conv2d(squeeze1x1, expand3x3, kernel_size = 3, padding = 1)
     self.bn3 = nn.BatchNorm2d(expand3x3)
-    self.relu2 = nn.ReLU(inplace=True)
+    # self.act2 = nn.ReLU(inplace=True)
+    self.act2 = nn.Mish(inplace=True)
     
-    # Binarizing weights for fire module
+    ## Binarizing weights for fire module
     for m in self.modules():
       if isinstance(m, nn.Conv2d):
         torch.nn.init.normal_(m.weight, mean=0, std=0.01)
@@ -24,13 +27,13 @@ class Fire(nn.Module):
   def forward(self, x):
     out = self.squeeze(x)
     out = self.bn1(out)
-    out = self.relu1(out)
+    out = self.act1(out)
     out1 = self.expand1(out)
     out1 = self.bn2(out1)
     out2 = self.expand3(out)
     out2 = self.bn3(out2)
     out = torch.cat([out1, out2], 1)
-    out = self.relu2(out)
+    out = self.act2(out)
 
     return out
   
@@ -39,7 +42,8 @@ class SqueezeNet(nn.Module):
     super(SqueezeNet, self).__init__()
     self.conv1 = nn.Conv2d(3, 96, kernel_size=3, stride=1, padding=1)
     self.bn1 = nn.BatchNorm2d(96)
-    self.relu = nn.ReLU(inplace=True)
+    # self.act1 = nn.ReLU(inplace=True)
+    self.act1 = nn.Mish(inplace=True)
     self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2) #16x16
     self.fire2 = Fire(96, 16, 64, 64)
     self.fire3 = Fire(128, 16, 64, 64)
@@ -65,7 +69,7 @@ class SqueezeNet(nn.Module):
   def forward(self, x):
     out = self.conv1(x)
     out = self.bn1(out)
-    out = self.relu(out)
+    out = self.act1(out)
     out = self.maxpool1(out)
     out = self.fire2(out)
     out = self.fire3(out)
