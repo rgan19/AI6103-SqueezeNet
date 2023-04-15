@@ -10,7 +10,6 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 
-import binaryconnect
 from models.squeezenet import SqueezeNet
 from models.squeezenet import SqueezeNet
 from preprocess import get_test_loader, get_train_valid_loader
@@ -33,25 +32,17 @@ def train(train_loader, val_loader, model, criterion, optimizer, epochs, schedul
         model.train()
         for images, labels in train_loader:
             batch_size = images.shape[0]
-
-            images, labels = images.to(device), labels.to(device)
-
-            if args.bc:
-                binaryconnect.binarization()    # BC implementation  
-            
+            images, labels = images.to(device), labels.to(device)      
             logits = model(images)
             optimizer.zero_grad()
             loss = criterion(logits, labels)
             loss.backward()
             
+            # BC implementation - Clip weights prior to parameter update
             if args.bc:
-                binaryconnect.restore()     # BC implementation
-                                  
+                torch.nn.utils.clip_grad_value_(model.parameters(), -1, 1)
+            
             optimizer.step()
-            
-            if args.bc:
-                binaryconnect.clip()     # BC implementation
-            
             scheduler.step()
             
             _, top_class = logits.topk(1, dim=1)
@@ -137,7 +128,7 @@ def parse_args(args):
     
     parser.add_argument('--seed', type=int, default=0, help='set random seed value')
     parser.add_argument('--wd', default=0.0, type=float, help='weight decay')
-    parser.add_argument('--lr', '--learning_rate', default=0.0003, type=float,
+    parser.add_argument('--lr', '--learning_rate', default=0.12, type=float,
             metavar='LR', help='initial learning rate', dest='lr')
     parser.add_argument('--lr_scheduler', action='store_true', default=True, help='select learning rate schduler')
     parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
