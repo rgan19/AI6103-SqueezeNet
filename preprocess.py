@@ -54,7 +54,7 @@ def get_test_loader(dir, batch_size, norm_value): # norm value takes in
 
     mean_val = norm_value[0]
     std_val = norm_value[1]
-    print('mean val', mean_val, std_val)
+    # print('mean val', mean_val, std_val)
     # mean_val = (0.5068, 0.4861, 0.4403)
     # std_val = (0.2108, 0.2080, 0.2152)
    
