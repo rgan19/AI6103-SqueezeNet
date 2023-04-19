@@ -38,8 +38,6 @@ class Fire(nn.Module):
         out = self.act2(torch.cat([out1, out2], 1))
         return out
 
-
-
 class SqueezeNet(nn.Module):
     def __init__(self):
         super(SqueezeNet, self).__init__()
@@ -59,30 +57,30 @@ class SqueezeNet(nn.Module):
         self.fire9 = Fire(512, 64, 256, 256)
         self.dropout = nn.Dropout(p=0.5)
         self.classifier = nn.Sequential(nn.Conv2d(512, 100, kernel_size=1, stride=1), nn.AvgPool2d(kernel_size=4, stride=4))
-
+        
     def forward(self, x):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
         out = self.maxpool1(out)
-        
+
         out_fire2 = self.fire2(out)
         out_fire3 = self.fire3(out_fire2)
         out_fire4 = self.fire4(out_fire2 + out_fire3)
-        
+
         out = self.maxpool2(out_fire4)
         out_fire5 = self.fire5(out_fire2 + out_fire3 + out_fire4)
         out_fire6 = self.fire6(out_fire2 + out_fire3 + out_fire4 + out_fire5)
-        
+
         out_fire7 = self.fire7(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6)
         out_fire8 = self.fire8(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7)
-        
+
         out = self.maxpool3(out_fire8)
         out_fire9 = self.fire9(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8)
         out_fire9 = self.dropout(out_fire9)
-        
+
         out = self.classifier(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8 + out_fire9)
-        
+
         out = torch.flatten(out, 1)
-        
+
         return out
