@@ -58,6 +58,13 @@ class SqueezeNet(nn.Module):
         self.dropout = nn.Dropout(p=0.5)
         self.classifier = nn.Sequential(nn.Conv2d(512, 100, kernel_size=1, stride=1), nn.AvgPool2d(kernel_size=4, stride=4))
         
+   
+    def match_channels(self, x, target_channels):
+        if x.size(1) == target_channels:
+            return x
+        else:
+            return nn.Conv2d(x.size(1), target_channels, kernel_size=1)(x)
+
     def forward(self, x):
         out = self.conv1(x)
         out = self.bn1(out)
@@ -66,20 +73,23 @@ class SqueezeNet(nn.Module):
 
         out_fire2 = self.fire2(out)
         out_fire3 = self.fire3(out_fire2)
-        out_fire4 = self.fire4(out_fire2 + out_fire3)
+        out_fire4 = self.fire4(out_fire2 + self.match_channels(out_fire3, out_fire2.size(1)))
 
         out = self.maxpool2(out_fire4)
-        out_fire5 = self.fire5(out_fire2 + out_fire3 + out_fire4)
-        out_fire6 = self.fire6(out_fire2 + out_fire3 + out_fire4 + out_fire5)
+        out_sum = out_fire2 + self.match_channels(out_fire3, out_fire2.size(1)) + self.match_channels(out_fire4, out_fire2.size(1))
+        out_fire5 = self.fire5(out_sum)
+        out_fire6 = self.fire6(out_sum + self.match_channels(out_fire5, out_fire2.size(1)))
 
-        out_fire7 = self.fire7(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6)
-        out_fire8 = self.fire8(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7)
+        out_sum = out_sum + self.match_channels(out_fire5, out_fire2.size(1)) + self.match_channels(out_fire6, out_fire2.size(1))
+        out_fire7 = self.fire7(out_sum)
+        out_fire8 = self.fire8(out_sum + self.match_channels(out_fire7, out_fire2.size(1)))
 
         out = self.maxpool3(out_fire8)
-        out_fire9 = self.fire9(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8)
+        out_sum = out_sum + self.match_channels(out_fire7, out_fire2.size(1)) + self.match_channels(out_fire8, out_fire2.size(1))
+        out_fire9 = self.fire9(out_sum)
         out_fire9 = self.dropout(out_fire9)
 
-        out = self.classifier(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8 + out_fire9)
+        out = self.classifier(out_sum + self.match_channels(out_fire9, out_fire2.size(1)))
 
         out = torch.flatten(out, 1)
 
