@@ -38,7 +38,9 @@ class Fire(nn.Module):
         out = self.act2(torch.cat([out1, out2], 1))
         return out
 
- class SqueezeNet(nn.Module):
+
+
+class SqueezeNet(nn.Module):
     def __init__(self):
         super(SqueezeNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 96, kernel_size=3, stride=1, padding=1)
@@ -58,30 +60,28 @@ class Fire(nn.Module):
         self.dropout = nn.Dropout(p=0.5)
         self.classifier = nn.Sequential(nn.Conv2d(512, 100, kernel_size=1, stride=1), nn.AvgPool2d(kernel_size=4, stride=4))
 
-    def skip(self, x):
-        return x
-
     def forward(self, x):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
         out = self.maxpool1(out)
         
-        out = self.fire2(out)
-        out_fire3 = self.fire3(out)
-        out = self.fire4(out_fire3 + self.skip(out))
+        out_fire2 = self.fire2(out)
+        out_fire3 = self.fire3(out_fire2)
+        out_fire4 = self.fire4(out_fire2 + out_fire3)
         
-        out = self.maxpool2(out)
-        out_fire5 = self.fire5(out)
-        out = self.fire6(out_fire5 + self.skip(out))
+        out = self.maxpool2(out_fire4)
+        out_fire5 = self.fire5(out_fire2 + out_fire3 + out_fire4)
+        out_fire6 = self.fire6(out_fire2 + out_fire3 + out_fire4 + out_fire5)
         
-        out_fire7 = self.fire7(out)
-        out = self.fire8(out_fire7 + self.skip(out))
+        out_fire7 = self.fire7(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6)
+        out_fire8 = self.fire8(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7)
         
-        out = self.maxpool3(out)
-        out_fire9 = self.fire9(out)
-        out_fire9 = self.dropout(out_fire9)  # Apply dropout to the output of fire9
-        out = self.classifier(out_fire9 + self.skip(out))
+        out = self.maxpool3(out_fire8)
+        out_fire9 = self.fire9(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8)
+        out_fire9 = self.dropout(out_fire9)
+        
+        out = self.classifier(out_fire2 + out_fire3 + out_fire4 + out_fire5 + out_fire6 + out_fire7 + out_fire8 + out_fire9)
         
         out = torch.flatten(out, 1)
         
