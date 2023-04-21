@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-# from models.mish import Mish
 
 class Fire(nn.Module):
   def __init__(self, in_planes, squeeze1x1, expand1x1, expand3x3):
@@ -56,15 +54,7 @@ class SqueezeNet(nn.Module):
     self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2) #4x4
     self.fire9 = Fire(512, 64, 256, 256)
     self.conv2 = nn.Conv2d(512, 100, kernel_size=1, stride=1)
-    #self.avg_pool = nn.AvgPool2d(kernel_size=4, stride=4) #1x1
     self.classifier = nn.Sequential(self.conv2, nn.AvgPool2d(kernel_size=4, stride=4))
-    #for m in self.modules():
-    #  if isinstance(m, nn.Conv2d):
-    #    n = m.kernel_size[0] * m.kernel_size[1] * m.in_channels
-    #    m.weight.data.normal_(0, math.sqrt(2. / n))
-    #  elif isinstance(m, nn.BatchNorm2d):
-    #      m.weight.data.fill_(1)
-    #      m.bias.data.zero_()
   
   def forward(self, x):
     out = self.conv1(x)
@@ -82,8 +72,5 @@ class SqueezeNet(nn.Module):
     out = self.maxpool3(out)
     out = self.fire9(out)
     out = self.classifier(out)
-    #out = self.avg_pool(out)
-    out = torch.flatten(out, 1)
-    #out = self.softmax(out)
-    # flatten to [128, 100]
+    out = torch.flatten(out, 1) # flatten to [128, 100]
     return out
