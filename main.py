@@ -134,7 +134,6 @@ def parse_args(args):
     parser.add_argument('--lr_scheduler', action='store_true', default=True, help='select learning rate schduler')
     parser.add_argument('--plot', default=False, action='store_true', help='plot graph')
     
-    # TODO: add more arguments for different improvements 
 
     return parser.parse_args(args)
 
@@ -150,9 +149,6 @@ def main(args):
     model = SqueezeNet()
     model.to(device)
     
-    # BC implementation
-    # binaryconnect = binaryconnect.BC(model)
-
     print ('-- Criterion')
     criterion = torch.nn.CrossEntropyLoss().to(device)
 
@@ -172,7 +168,7 @@ def main(args):
 
     # Run on test set
     if args.test:
-        test_loader = get_test_loader(args.dataset_dir, args.batch_size, norm_value)
+        test_loader = get_test_loader(args.dataset_dir, args.batch_size)
         test_result = test(test_loader, model, criterion)
         print('Test result', test_result)
 
