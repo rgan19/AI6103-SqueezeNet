@@ -1,37 +1,41 @@
-## SqueezeNet: PyTorch Implementation, Improvement and Exploration
+## Binarizing SqueezeNet: PyTorch Implementation and Exploration
+
+AI6103 Deep Learning & Applications Group Project
+
+Team Members: 
+- Ang Zheng Da
+- Wang Wei Sheng
+- Rachel Gan 
 
 ### Description
-This is a PyTorch implementation of [SqueezeNet](https://arxiv.org/abs/1602.07360) model, a lightweight CNN architecture that achieves higher accuracy compared to traditional CNN, proposed by Forrest N. Iandola.
 
-To improve the performance of SqueezeNet, we experimented with different techniques such as adding batch normalization and skip connections.
+This repository is to explore the integration of SqueezeNet with Binary Connect and Skip Connections. 
+SqueezeNet is an optimized CNN architecture with a high level of accuracy that requires fewer parameters, and BinaryConnect is a training technique with binary weights that requires lower memory consumption and achieves faster computations. 
 
 This is tested on CIFAR-100.
 
 In this repository, it contains the following:
 
-1. Base model (original)
+1. Vanilla SqueezeNet
     
-    The base model follows the implementation in the paper. It consists of 8 fire modules, each with a squeeze module followed by an expand module. The network has been modified to take in CIFAR-100 dataset and outputs a 100-dimension probaility vector.
+    The base model follows the implementation in the paper. It consists of 8 fire modules, each with a squeeze module followed by an expand module. The network has been modified to take in CIFAR-100 dataset and outputs a 100-dimension probaility vector. Batch normalisation is added after each convolutional layer in the squeeze and expand modules.
 
-2. Batch normalisation
+2. Binary Connect
 
-    Batch normalisation is a technique that helps to speed up training and improve generalization. In this implementation, batch normalisation is added after each convolutional layer in the squeeze and expand modules.
+    A deep learning technique that acts as a regularizer and binary weights are constrained to 2 possible values, reducing memory and computational requirements.
 
-3. Binary Connect
-
-    A deep learning technique that acts as a regularizer and binary weights are constrained to 2 possible values, reducing memory and computational requirements. It has been included into SqueezeNet to reduce parameters (to confirm by how much). 
-
-4. Skip connection
+3. Skip Connection
 
     Skip connections have been shown to improve the performance of deep neural networks by allowing information to bypass certain layers.
 
+    (Code: refer to skip connection branch)
 
-5. Mish Activation Function (to confirm)
+4. Mish Activation Function
 
     Mish is a novel self-regularized non-monotonic activation function
 
 
-### Run
+### Setup
 
 Prerequisites: 
 - PyTorch
@@ -49,10 +53,6 @@ To run:
 
 
 
-### Results
-
-
-
 ### References
 
 [1] SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size [Paper](https://arxiv.org/abs/1602.07360)
@@ -63,4 +63,3 @@ To run:
 
 
 
-README To be updated
