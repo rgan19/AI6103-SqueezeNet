@@ -9,9 +9,6 @@ Team Members:
 
 ### Description
 
-This repository is to explore the integration of SqueezeNet with Binary Connect and Skip Connections. 
-SqueezeNet is an optimized CNN architecture with a high level of accuracy that requires fewer parameters, and BinaryConnect is a training technique with binary weights that requires lower memory consumption and achieves faster computations. 
-
 This is tested on CIFAR-100.
 
 In this repository, it contains the following:
